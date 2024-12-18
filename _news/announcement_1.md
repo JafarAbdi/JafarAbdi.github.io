@@ -1,8 +1,8 @@
 ---
 layout: post
-date: 2015-10-22 15:59:00-0400
+date: 2024-12-18 13:02:39+0300
 inline: true
 related_posts: false
 ---
 
-A simple inline announcement.
+I'll be joining [Humanoid](https://thehumanoid.ai/) as a Senior Robotics Research Engineer in Jan 2025. I'll be part of the manipulation team, working on robot learning and control.
