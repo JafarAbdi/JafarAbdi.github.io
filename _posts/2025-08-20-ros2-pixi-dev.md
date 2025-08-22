@@ -202,3 +202,9 @@ However, this approach has several significant drawbacks:
 </div>
 
 - Development Workflow Friction: This might be specific to robot learning + ROS 2 workflows. It's often much simpler to create a virtual environment with uv or poetry for ML code, install dependencies directly, and run your models. However, this approach creates two separate environments: one for ROS 2 packages and another for machine learning code. This split leads to integration challenges when you finally want to deploy your trained model on the robot. (Note that Conda isn't a viable solution here either, as both apt-provided ROS 2 and Conda modify environment variables in conflicting ways.)
+
+---
+
+### Acknowledgments
+
+Thanks to XX YY, SS DD, and GG SS for reviewing this post and providing helpful feedback.
