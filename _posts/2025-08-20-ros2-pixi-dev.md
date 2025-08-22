@@ -7,43 +7,9 @@ tags: ROS2 pixi docker
 
 When starting a new ROS 2 project with multiple team members, establishing a reproducible development environment is crucial for success. Without it, you'll inevitably face the classic "works on my machine" problem, where code that runs perfectly for one developer fails mysteriously for another.
 
-One approach I used in the past was to create a Docker image that encapsulated all the dependencies and configurations needed for the project. This worked well for ensuring consistency across machines, but it also introduced significant complexity and frustration.
+One approach I used in the past was to create a Docker image that encapsulated all the dependencies and configurations needed for the project. This worked well for ensuring consistency across machines, but it also introduced significant complexity and frustration (see [Appendix: Docker Challenges](#appendix-docker-challenges-in-ros-2-development) for details).
 
 In this post, I'll introduce pixi as a modern alternative for creating reproducible ROS 2 development environments.
-
-## The Docker Challenge in ROS 2 Development
-
-Having worked with Docker for ROS 2 development, the typical workflow involves three files: a Dockerfile with several stages (base image with ROS 2 installed, dependency installation, build stage to compile ROS packages, and final dev stage with necessary tools), a docker-compose file defining services like the dev environment and CI/CD testing that mount the workspace and set environment variables, and finally a Makefile that orchestrates the build and run commands.
-
-However, this approach has several significant drawbacks:
-
-- Reproducibility issues: To truly ensure reproducibility, you need to pin every dependency version in the Dockerfile — system & ROS 2 packages (via apt), Python packages (via pip). While ROS 2 provides a snapshot repository after each release and distro ([snapshot repository](http://wiki.ros.org/SnapshotRepository)), you still need to create custom scripts to scrape package.xml files and requirements.txt files to generate lock files containing all dependencies and their versions. As far as I know, no tool does this automatically for ROS 2 packages. You also need to ensure PyPI dependencies are compatible and won't cause runtime errors due to version mismatches.
-
-- Slow build times: If you are not careful with your docker build's context, you can end up with invalidating the Docker cache for every build, leading to long build times and slow development cycles.
-
-<div class="row" style="text-align: center;">
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" max-width="200px" max-heigth="300px" path="https://imgs.xkcd.com/comics/compiling.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-    </div>
-</div>
-<div class="caption">
-    Typical xkcd developer waiting for Docker to build a ROS 2 workspace.
-</div>
-
-- Image size bloat: Docker images become massive, especially when adding CUDA and other heavy dependencies
-
-- Disk space consumption: Docker images can take up a lot of disk space, just run `docker system df` to see how much space is consumed.
-
-<div class="row" style="text-align: center;">
-    <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" max-width="200px" max-heigth="300px" path="assets/img/heaviest_objects_in_the_universe.jpg" class="img-fluid rounded z-depth-1" zoomable=true %}
-    </div>
-</div>
-<div class="caption">
-    Heaviest objects in the universe: neutron stars, black holes, and Docker images. <a href="https://bsky.app/profile/xeiaso.net/post/3lglgdrjzfs22" target="_blank">(Source: Bluesky post)</a>
-</div>
-
-- Development Workflow Friction: This might be specific to robot learning + ROS 2 workflows. It's often much simpler to create a virtual environment with uv or poetry for ML code, install dependencies directly, and run your models. However, this approach creates two separate environments: one for ROS 2 packages and another for machine learning code. This split leads to integration challenges when you finally want to deploy your trained model on the robot. (Note that Conda isn't a viable solution here either, as both apt-provided ROS 2 and Conda modify environment variables in conflicting ways.)
 
 ## Enter Pixi: A Unified Development Solution
 
@@ -202,3 +168,37 @@ MY_ENV_VAR="$CONDA_PREFIX/my_env_var"
 ## Conclusion
 
 As someone who has been working in robot learning where projects require a mix of Python and C++ codebases alongside complex dependency management spanning both ROS 2 and ML frameworks, Pixi has been a game-changer. The ability to seamlessly manage conda-forge packages for ROS 2 components alongside PyPI packages for machine learning dependencies in a single, reproducible environment has dramatically reduced development friction and allowed me to iterate much faster.
+
+## Appendix: Docker Challenges in ROS 2 Development
+
+Having worked with Docker for ROS 2 development, the typical workflow involves three files: a Dockerfile with several stages (base image with ROS 2 installed, dependency installation, build stage to compile ROS packages, and final dev stage with necessary tools), a docker-compose file defining services like the dev environment and CI/CD testing that mount the workspace and set environment variables, and finally a Makefile that orchestrates the build and run commands.
+
+However, this approach has several significant drawbacks:
+
+- Reproducibility issues: To truly ensure reproducibility, you need to pin every dependency version in the Dockerfile — system & ROS 2 packages (via apt), Python packages (via pip). While ROS 2 provides a snapshot repository after each release and distro ([snapshot repository](http://wiki.ros.org/SnapshotRepository)), you still need to create custom scripts to scrape package.xml files and requirements.txt files to generate lock files containing all dependencies and their versions. As far as I know, no tool does this automatically for ROS 2 packages. You also need to ensure PyPI dependencies are compatible and won't cause runtime errors due to version mismatches.
+
+- Slow build times: If you are not careful with your docker build's context, you can end up with invalidating the Docker cache for every build, leading to long build times and slow development cycles.
+
+<div class="row" style="text-align: center;">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" max-width="200px" max-heigth="300px" path="https://imgs.xkcd.com/comics/compiling.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+</div>
+<div class="caption">
+    Typical xkcd developer waiting for Docker to build a ROS 2 workspace.
+</div>
+
+- Image size bloat: Docker images become massive, especially when adding CUDA and other heavy dependencies
+
+- Disk space consumption: Docker images can take up a lot of disk space, just run `docker system df` to see how much space is consumed.
+
+<div class="row" style="text-align: center;">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" max-width="200px" max-heigth="300px" path="assets/img/heaviest_objects_in_the_universe.jpg" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+</div>
+<div class="caption">
+    Heaviest objects in the universe: neutron stars, black holes, and Docker images. <a href="https://bsky.app/profile/xeiaso.net/post/3lglgdrjzfs22" target="_blank">(Source: Bluesky post)</a>
+</div>
+
+- Development Workflow Friction: This might be specific to robot learning + ROS 2 workflows. It's often much simpler to create a virtual environment with uv or poetry for ML code, install dependencies directly, and run your models. However, this approach creates two separate environments: one for ROS 2 packages and another for machine learning code. This split leads to integration challenges when you finally want to deploy your trained model on the robot. (Note that Conda isn't a viable solution here either, as both apt-provided ROS 2 and Conda modify environment variables in conflicting ways.)
