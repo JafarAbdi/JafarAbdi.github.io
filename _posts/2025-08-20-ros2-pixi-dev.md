@@ -157,11 +157,17 @@ Pixi uses [uv](https://docs.astral.sh/uv/) for managing PyPI dependencies alongs
 pixi add --pypi numpy scipy matplotlib
 ```
 
-It also a list of extras, but you need to manually specify them:
+It also supports extras. For example, to add Flask with async support:
+
+```bash
+pixi add --pypi flask[async]
+```
+
+This will update your `pixi.toml` file with:
 
 ```toml
 [pypi-dependencies]
-flask = { version = ">=3.1.0, <4", extras = ["async"] }
+flask = { version = ">=3.1.2, <4", extras = ["async"] }
 ```
 
 If you want to add a source python package, you can do so by specifying the path:
