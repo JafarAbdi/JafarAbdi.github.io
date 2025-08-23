@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Using Pixi as a Development Environment for ROS 2
-date: 2025-08-20
+date: 2025-08-23
 tags: ROS2 pixi docker
 ---
 
@@ -30,7 +30,14 @@ Begin by initializing Pixi in your project directory:
 pixi init
 ```
 
-Next, configure the appropriate channels in your `pixi.toml` file. The channel selection depends on your target ROS 2 distribution:
+Next, configure the appropriate channels. The channel selection depends on your target ROS 2 distribution. You can either manually edit your `pixi.toml` file or use the CLI:
+
+```bash
+# Add RoboStack channel for your desired ROS 2 distribution
+pixi workspace channel add https://prefix.dev/robostack-jazzy
+```
+
+This will update your `pixi.toml` file with:
 
 ```toml
 channels = ["conda-forge", "https://prefix.dev/robostack-jazzy"]
@@ -40,24 +47,23 @@ channels = ["conda-forge", "https://prefix.dev/robostack-jazzy"]
 
 ### ROS 2 Base Dependencies
 
-Add one of the following dependency tiers to your `pixi.toml` based on your project needs:
+Add ROS 2 dependencies using the CLI:
 
-```toml
-[dependencies]
-# Minimal core functionality
-ros-jazzy-ros-core = "*"
-
-# Standard base installation (recommended for most projects)
-ros-jazzy-ros-base = "*"
-
-# Desktop environment with GUI tools
-ros-jazzy-desktop = "*"
-
-# Complete desktop installation with all tools
-ros-jazzy-desktop-full = "*"
+```bash
+# Add one of the following based on your project needs:
+pixi add ros-jazzy-ros-core        # Minimal core functionality
+pixi add ros-jazzy-ros-base        # Standard base installation (recommended)
+pixi add ros-jazzy-desktop         # Desktop environment with GUI tools
+pixi add ros-jazzy-desktop-full    # Complete desktop installation
 ```
 
 **Pro Tip**: Use the [prefix.dev](https://prefix.dev/) package explorer to browse available packages and their dependencies. For CLI users, run: `pixi search --channel https://prefix.dev/robostack-jazzy ros-jazzy-desktop`
+
+For common development tools, add them with:
+
+```bash
+pixi add colcon-common-extensions colcon-mixin cmake ninja mold sccache
+```
 
 ### Dependency Management Strategy
 
@@ -65,12 +71,11 @@ I'm not aware of a tool that automatically extracts dependencies from `package.x
 
 ### Task Automation
 
-This part is very simple, you can define your tasks in the `pixi.toml` file. For example, to build your ROS 2 workspace, you can add:
+Define your tasks using the CLI:
 
-```toml
-[tasks]
-build = "colcon build"
-test = { cmd = "colcon test", depends-on = "build" }
+```bash
+pixi task add build "colcon build"
+pixi task add test "colcon test" --depends-on build
 ```
 
 Execute tasks with simple commands:
@@ -84,7 +89,21 @@ pixi run test  # Automatically runs build first, then test
 
 ### Multi-Environment Support
 
-One of Pixi's most powerful features is seamless multi-environments support:
+One of Pixi's most powerful features is seamless multi-environments support. You can set this up using CLI commands:
+
+```bash
+# Setup Humble environment
+pixi workspace channel add https://prefix.dev/robostack-humble --feature humble
+pixi workspace environment add humble --feature humble
+pixi add ros-humble-ros-base --feature humble
+
+# Setup Jazzy environment
+pixi workspace channel add https://prefix.dev/robostack-jazzy --feature jazzy
+pixi workspace environment add jazzy --feature jazzy
+pixi add ros-jazzy-ros-base --feature jazzy
+```
+
+This creates the following configuration in your `pixi.toml`:
 
 ```toml
 [feature.jazzy.dependencies]
@@ -99,10 +118,24 @@ jazzy = { features = ["jazzy"] }
 ```
 
 Switch between environments effortlessly:
+
 ```bash
 pixi shell -e jazzy   # Enter Jazzy environment
 pixi shell -e humble  # Switch to Humble environment
 ```
+
+You can also create specialized environments for different purposes:
+
+```bash
+# Setup linting environment
+pixi add pre-commit --feature lint
+pixi workspace environment add lint --feature lint --no-default-feature
+pixi task add lint "pre-commit run --all-files" --feature lint
+```
+
+```bash
+pixi run lint
+ ```
 
 This eliminates the need for multiple Docker containers.
 
@@ -169,6 +202,10 @@ MY_ENV_VAR="$CONDA_PREFIX/my_env_var"
 
 As someone who has been working in robot learning where projects require a mix of Python and C++ codebases alongside complex dependency management spanning both ROS 2 and ML frameworks, Pixi has been a game-changer. The ability to seamlessly manage conda-forge packages for ROS 2 components alongside PyPI packages for machine learning dependencies in a single, reproducible environment has dramatically reduced development friction and allowed me to iterate much faster.
 
+## Appendix: Advanced Pixi Usage
+
+Beyond ROS 2, I've successfully used Pixi to build complex projects like OMPL, MuJoCo, MuJoCo MPC, and llama.cpp from source - you can find these configurations in my [pixi_workspaces](https://github.com/JafarAbdi/pixi_workspaces) repository.
+
 ## Appendix: Docker Challenges in ROS 2 Development
 
 Having worked with Docker for ROS 2 development, the typical workflow involves three files: a Dockerfile with several stages (base image with ROS 2 installed, dependency installation, build stage to compile ROS packages, and final dev stage with necessary tools), a docker-compose file defining services like the dev environment and CI/CD testing that mount the workspace and set environment variables, and finally a Makefile that orchestrates the build and run commands.
@@ -207,4 +244,4 @@ However, this approach has several significant drawbacks:
 
 ### Acknowledgments
 
-Thanks to XX YY, SS DD, and GG SS for reviewing this post and providing helpful feedback.
+Thanks to Sam Pfeiffer and Sebastian Castro for reviewing this post and providing helpful feedback.
