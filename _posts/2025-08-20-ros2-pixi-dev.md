@@ -7,15 +7,25 @@ tags: ROS2 pixi docker
 
 When starting a new ROS 2 project with multiple team members, establishing a reproducible development environment is crucial for success. Without it, you'll inevitably face the classic "works on my machine" problem, where code that runs perfectly for one developer fails mysteriously for another.
 
+## What is RoboStack?
+
+[RoboStack](https://robostack.github.io/index.html) brings the Robot Operating System (ROS) to any platform - Linux, macOS, and Windows - using the Conda package manager. Unlike traditional ROS installations that are Linux-specific and require system-level packages, RoboStack packages ROS distributions (like Humble and Jazzy) as Conda packages that can be installed without root access.
+
+This approach enables easy integration of ROS with machine learning libraries like PyTorch and Flax in the same environment, making it perfect for robotics research that combines traditional robotics with modern AI workflows.
+
+## Enter Pixi: A Unified Development Solution
+
 One approach I used in the past was to create a Docker image that encapsulated all the dependencies and configurations needed for the project. This worked well for ensuring consistency across machines, but it also introduced significant complexity and frustration (see [Appendix: Docker Challenges](#appendix-docker-challenges-in-ros-2-development) for details).
 
 In this post, I'll introduce pixi as a modern alternative for creating reproducible ROS 2 development environments.
 
-## Enter Pixi: A Unified Development Solution
-
 ### What Pixi Brings to the Table
 
-- **Three tools in one**: 1. Task runner (Replaces Makefile) 2. Dependency management (combines conda and PyPI through uv) with a lock file 3. Multi-environments management.
+- **Three tools in one**: 
+    1. Task runner (Replaces Makefile) 
+    2. Dependency management (combines conda and PyPI through uv) with a lock file 
+    3. Multi-environments management.
+
 - **ROS 2 integration** through [RoboStack](https://robostack.github.io/) project.
 - **Simple multi-distro support**: Easy switching between ROS 2 distributions.
 - **Python integration**: Ensuring ROS 2 and Python dependencies are compatible.
@@ -138,6 +148,28 @@ pixi run lint
  ```
 
 This eliminates the need for multiple Docker containers.
+
+### PyPi dependencies
+
+Pixi uses [uv](https://docs.astral.sh/uv/) for managing PyPI dependencies alongside Conda packages. To add PyPI packages, use:
+
+```bash
+pixi add --pypi numpy scipy matplotlib
+```
+
+It also a list of extras, but you need to manually specify them:
+
+```toml
+[pypi-dependencies]
+flask = { version = ">=3.1.0, <4", extras = ["async"] }
+```
+
+If you want to add a source python package, you can do so by specifying the path:
+
+```toml
+[pypi-dependencies]
+my_cool_library = { path = "./my_cool_library", editable = true, extras = ["dev"] }
+```
 
 ### Cross-Platform Support
 
