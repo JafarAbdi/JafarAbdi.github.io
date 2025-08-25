@@ -236,6 +236,12 @@ MY_ENV_VAR="$CONDA_PREFIX/my_env_var"
 
 - **Specialized hardware support**: For Jetson machines, NVidia provides custom builds for PyTorch/TorchVision that require specific handling. Using standard PyPI/Conda packages would cause segfaults or crashes. The best solution I'm aware of for this specific case is still using Docker.
 
+### Update: Experimental Build Backends for ROS Packages
+
+[Austin Gregg-Smith](https://github.com/blooop) and [Silvio Traversaro](https://github.com/traversaro) told me about an exciting new feature in Pixi, it now includes experimental [build backends](https://github.com/prefix-dev/pixi-build-backends) that can build ROS 2 packages directly from source code.
+
+See [ros_workspace](https://github.com/ruben-arts/ros_workspace/) for an example of how to use this feature.
+
 ## Conclusion
 
 As someone who has been working in robot learning where projects require a mix of Python and C++ codebases alongside complex dependency management spanning both ROS 2 and ML frameworks, Pixi has been a game-changer. The ability to seamlessly manage conda-forge packages for ROS 2 components alongside PyPI packages for machine learning dependencies in a single, reproducible environment has dramatically reduced development friction and allowed me to iterate much faster.
