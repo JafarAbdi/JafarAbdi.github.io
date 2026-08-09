@@ -8,8 +8,10 @@ import html
 import pathlib
 import re
 import shutil
+import xml.etree.ElementTree as etree
 
 import markdown
+from markdown import treeprocessors
 from pygments import formatters
 
 SITE_URL = "https://jafarabdi.github.io"
@@ -20,12 +22,25 @@ ROOT = pathlib.Path(__file__).parent
 OUT = ROOT / "_site"
 
 
+class LinkImages(treeprocessors.Treeprocessor):
+    """Link each image to its own file so clicking shows it full size."""
+
+    def run(self, root: etree.Element) -> None:
+        for parent in root.iter():
+            for index, image in enumerate(parent):
+                if image.tag == "img" and parent.tag != "a":
+                    link = etree.Element("a", href=image.get("src", ""))
+                    link.append(image)
+                    parent[index] = link
+
+
 def render(text: str) -> str:
-    return markdown.markdown(
-        text,
+    md = markdown.Markdown(
         extensions=["fenced_code", "codehilite", "tables", "toc"],
         extension_configs={"codehilite": {"guess_lang": False}},
     )
+    md.treeprocessors.register(LinkImages(md), "link_images", 5)
+    return md.convert(text)
 
 
 def render_inline(text: str) -> str:

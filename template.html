@@ -16,5 +16,17 @@
 <main>
 {{content}}
 </main>
+<dialog id="lightbox"><img alt=""><button aria-label="Close">×</button></dialog>
+<script>
+const lightbox = document.getElementById("lightbox");
+for (const link of document.querySelectorAll("main a:has(> img)")) {
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    lightbox.querySelector("img").src = link.href;
+    lightbox.showModal();
+  });
+}
+lightbox.addEventListener("click", () => lightbox.close());
+</script>
 </body>
 </html>
