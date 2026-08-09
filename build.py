@@ -129,10 +129,12 @@ def main() -> None:
     posts.sort(key=lambda post: post["date"], reverse=True)
 
     for post in posts:
+        shutil.copytree(
+            (ROOT / post["src"]).parent,
+            OUT / post["url"].strip("/"),
+            ignore=shutil.ignore_patterns("*.md"),
+        )
         write(post["url"], post["title"], post_html(post), template)
-        for asset in (ROOT / post["src"]).parent.iterdir():
-            if asset.suffix != ".md":
-                shutil.copy(asset, OUT / post["url"].strip("/"))
 
     for path in ROOT.glob("*.md"):
         if path.name in ("README.md", "news.md"):
