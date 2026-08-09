@@ -178,7 +178,14 @@ def main() -> None:
     items = "\n".join(
         f"<li><time>{date}</time>{content}</li>" for date, content in entries
     )
-    write("/", SITE_TITLE, f'<ul class="posts">\n{items}\n</ul>', template)
+    links = """<footer>
+<a href="https://github.com/JafarAbdi">GitHub</a>
+<a href="https://www.linkedin.com/in/jafar-uruc">LinkedIn</a>
+<a href="https://bsky.app/profile/jafar-uruc.bsky.social">Bluesky</a>
+<a href="https://x.com/JafarUruc">Twitter</a>
+<a href="https://scholar.google.com/citations?user=Nx-CYEMAAAAJ">Google Scholar</a>
+</footer>"""
+    write("/", SITE_TITLE, f'<ul class="posts">\n{items}\n</ul>\n{links}', template)
 
     (OUT / "atom.xml").write_text(feed(posts), encoding="utf-8")
     print(f"built {len(posts)} post(s) -> {OUT}")

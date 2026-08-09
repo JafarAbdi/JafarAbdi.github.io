@@ -15,6 +15,7 @@ Feel free to reach out if you're interested in collaborating on robotics project
 - [GitHub](https://github.com/JafarAbdi)
 - [LinkedIn](https://www.linkedin.com/in/jafar-uruc)
 - [Bluesky](https://bsky.app/profile/jafar-uruc.bsky.social)
+- [Twitter](https://x.com/JafarUruc)
 - [Google Scholar](https://scholar.google.com/citations?user=Nx-CYEMAAAAJ)
 - Email: `echo wnsne.hehp@tznvy.pbz | tr a-z n-za-m`. I build robots for a living, but the ones scraping this page can do their own decoding.
 
