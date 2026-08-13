@@ -1,5 +1,6 @@
 ---
 title: Local Inference Models
+tags: llms, local-inference
 ---
 
 One of the most exciting thing in AI is not just that powerful models can solve a fair number of tasks in a single attempt. It is that more of these models can now run locally.

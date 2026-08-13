@@ -67,6 +67,16 @@ def parse(path: pathlib.Path) -> dict[str, str]:
     return meta | {"slug": path.stem, "body": body}
 
 
+def post_tags(post: dict[str, str]) -> list[str]:
+    tags = [tag.strip() for tag in post.get("tags", "").split(",") if tag.strip()]
+    assert len(tags) == len(set(tags)), f"{post['src']}: duplicate tags"
+    for tag in tags:
+        assert re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", tag), (
+            f"{post['src']}: invalid tag {tag!r}; use lowercase letters, digits, and hyphens"
+        )
+    return tags
+
+
 def write(url_path: str, title: str, content: str, template: str) -> None:
     page = template.replace("{{title}}", html.escape(title)).replace(
         "{{content}}", content
@@ -76,14 +86,19 @@ def write(url_path: str, title: str, content: str, template: str) -> None:
     (out_dir / "index.html").write_text(page, encoding="utf-8")
 
 
-def post_html(post: dict[str, str]) -> str:
+def post_html(post: dict[str, str], tags: list[str]) -> str:
     header = (
         f'<h1>{html.escape(post["title"])}</h1>\n<p class="date">{post["date"]}</p>\n'
     )
+    tag_links = " ".join(
+        f'<a href="/tags/{tag}/">#{tag}</a>' for tag in tags
+    )
+    if tag_links:
+        tag_links = f"\n<p>{tag_links}</p>"
     footer = (
         f'\n<footer><a href="{REPO_URL}/edit/main/{post["src"]}">fix typo</a></footer>'
     )
-    return header + render(post["body"]) + footer
+    return header + render(post["body"]) + tag_links + footer
 
 
 def feed(posts: list[dict[str, str]]) -> str:
@@ -143,13 +158,30 @@ def main() -> None:
     assert posts, "no posts found"
     posts.sort(key=lambda post: post["date"], reverse=True)
 
+    posts_by_tag: dict[str, list[dict[str, str]]] = {}
     for post in posts:
         shutil.copytree(
             (ROOT / post["src"]).parent,
             OUT / post["url"].strip("/"),
             ignore=shutil.ignore_patterns("*.md"),
         )
-        write(post["url"], post["title"], post_html(post), template)
+        tags = post_tags(post)
+        write(post["url"], post["title"], post_html(post, tags), template)
+        for tag in tags:
+            posts_by_tag.setdefault(tag, []).append(post)
+
+    for tag, tagged_posts in sorted(posts_by_tag.items()):
+        items = "\n".join(
+            f"<li><time>{post['date']}</time>"
+            f'<a href="{post["url"]}">{html.escape(post["title"])}</a></li>'
+            for post in tagged_posts
+        )
+        write(
+            f"/tags/{tag}/",
+            f"#{tag}",
+            f'<h1>#{tag}</h1>\n<ul class="posts">\n{items}\n</ul>',
+            template,
+        )
 
     for path in ROOT.glob("*.md"):
         if path.name in ("README.md", "news.md"):

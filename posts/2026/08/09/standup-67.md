@@ -1,5 +1,6 @@
 ---
 title: I Don't Want Smarter Models
+tags: llms, agents
 ---
 
 Well... at least for now.

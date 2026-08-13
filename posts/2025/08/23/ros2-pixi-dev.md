@@ -1,5 +1,6 @@
 ---
 title: Using Pixi as a Development Environment for ROS 2
+tags: ros2, pixi
 ---
 
 When starting a new ROS 2 project with multiple team members, establishing a reproducible development environment is crucial for success. Without it, you'll inevitably face the classic "works on my machine" problem, where code that runs perfectly for one developer fails mysteriously for another.

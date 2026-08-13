@@ -1,5 +1,6 @@
 ---
 title: Muse Glimmer 30B
+tags: llms, local-inference
 ---
 
 Meta released the weights for its Muse Glimmer model, following up on Muse Spark 1.2. One of my hobbies these days is trying out different models and wasting electricity and a few brain cells on them.

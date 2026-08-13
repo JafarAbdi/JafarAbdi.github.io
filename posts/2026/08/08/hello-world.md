@@ -1,5 +1,6 @@
 ---
 title: Hello, world!
+tags: blog
 ---
 
 One of the main reasons I had friction with blogging was the existing workflow. Until now, I had been using Jekyll with the [al-folio](https://github.com/alshedivat/al-folio/) theme. While it's amazing and beautiful, the workflow never clicked for me. Anyway, now with LLMs around, I asked my best friend Claude to build a [suckless](https://suckless.org/) blog in simple Python.
