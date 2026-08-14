@@ -90,9 +90,7 @@ def post_html(post: dict[str, str], tags: list[str]) -> str:
     header = (
         f'<h1>{html.escape(post["title"])}</h1>\n<p class="date">{post["date"]}</p>\n'
     )
-    tag_links = " ".join(
-        f'<a href="/tags/{tag}/">#{tag}</a>' for tag in tags
-    )
+    tag_links = " ".join(f'<a href="/tags/{tag}/">#{tag}</a>' for tag in tags)
     if tag_links:
         tag_links = f"\n<p>{tag_links}</p>"
     footer = (
