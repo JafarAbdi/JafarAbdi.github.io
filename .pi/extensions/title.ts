@@ -24,13 +24,16 @@ For example, prefer "You're right — my bad" over "LLM failure modes", and "I d
 Also recommend 1-2 tags that would genuinely help a reader find related posts:
 - Tag the post's central subject and, when useful, its specific angle.
 - Prefer a useful broad + specific pair, such as llms + local-inference or llms + agents.
-- Reuse established tags when accurate: agents, llms, local-inference, pixi, ros2.
-- Create a concise new tag when the specific angle is likely to recur. For example, use llms + failure-modes for a post about model apologies or contradictions.
+- Prefer an established tag from the supplied site inventory when it accurately describes the post.
+- Create a concise new tag only when no established tag captures a specific angle that is likely to recur.
 - Avoid medium and filler tags such as blog, post, opinion, thoughts, tech, ai, or programming.
 - Avoid tags for incidental mentions and one-off product/model names.
 - Return one tag when a second would only restate the first or pad the list.
 
-Tags must be lowercase and hyphenated when needed. Return three genuinely different title options, strongest first, plus one shared tag list. Keep each title under 60 characters. Derive each slug directly from its title using 2-6 meaningful words in the same order. Call suggest_titles exactly once and return no prose.`;
+Do not reuse an inaccurate or filler tag merely because it exists. Tags must be lowercase and hyphenated when needed. Return three genuinely different title options, strongest first, plus one shared tag list. Keep each title under 60 characters. Derive each slug directly from its title using 2-6 meaningful words in the same order. Call suggest_titles exactly once and return no prose.`;
+
+const LIST_TAGS_COMMAND =
+	"rg --no-filename '^tags:\\s*' posts --glob '*.md' | sed 's/^tags:\\s*//' | tr ',' '\\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' | sort -u";
 
 const suggestTitles: Tool = {
 	name: "suggest_titles",
@@ -78,9 +81,10 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
+			const postPath = resolve(ctx.cwd, file);
 			let post: string;
 			try {
-				post = readFileSync(resolve(ctx.cwd, file), "utf-8");
+				post = readFileSync(postPath, "utf-8");
 			} catch {
 				ctx.ui.notify(`Cannot read ${file}`, "error");
 				return;
@@ -96,6 +100,12 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
+			const tagSearch = await pi.exec("bash", ["-c", LIST_TAGS_COMMAND], {
+				cwd: ctx.cwd,
+				timeout: 5_000,
+			});
+			const tagInventory = tagSearch.stdout.trim() || "No existing tags found.";
+
 			ctx.ui.notify("Suggesting titles and tags...", "info");
 			const response = await ctx.modelRegistry.complete(
 				model,
@@ -104,7 +114,12 @@ export default function (pi: ExtensionAPI) {
 					messages: [
 						{
 							role: "user",
-							content: [{ type: "text", text: `<post>\n${post}\n</post>` }],
+							content: [
+								{
+									type: "text",
+									text: `<existing-tags>\n${tagInventory}\n</existing-tags>\n\n<post>\n${post}\n</post>`,
+								},
+							],
 							timestamp: Date.now(),
 						},
 					],
@@ -119,7 +134,7 @@ export default function (pi: ExtensionAPI) {
 				return;
 			}
 
-			const { suggestions, tags } = call.arguments as {
+			const { suggestions, tags: suggestedTags } = call.arguments as {
 				suggestions: Array<{ title: string; slug: string }>;
 				tags: string[];
 			};
@@ -127,7 +142,7 @@ export default function (pi: ExtensionAPI) {
 			const options = suggestions
 				.map(({ title, slug }) => `${title} -> posts/${date}/${slug}.md`)
 				.join("\n");
-			ctx.ui.notify(`${options}\nTags: ${tags.join(", ")}`, "info");
+			ctx.ui.notify(`${options}\nTags: ${suggestedTags.join(", ")}`, "info");
 		},
 	});
 }
